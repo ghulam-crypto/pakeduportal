@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PakEduPortal</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+      /* Custom scrollbar to look like a mobile app */
+      body { -webkit-font-smoothing: antialiased; }
+    </style>
+</head>
+<body>
+
+    <div id="root"></div>
+
+    <script type="text/babel">
+      
+      const { useState, useEffect } = React;
+
+      // --------------------------------------------------------
+      //  YOUR LIVE BACKEND URL
+      // --------------------------------------------------------
+      const API_URL = "https://script.google.com/macros/s/AKfycbxYjo_Ml50mHTZOxA11v3rtQnOHVVHR8fRSOhY9SSn0c0aAF_ByiUvkQfoAY4UyN1WE/exec"; 
+
+      /* --- ICONS --- */
+      const BookOpen = () => <span>📖</span>;
+      const Briefcase = () => <span>💼</span>;
+      const CheckSquare = () => <span>✅</span>;
+      const Search = ({size}) => <span>🔍</span>;
+      const Menu = () => <span>☰</span>;
+      const X = () => <span>✖</span>;
+      const ChevronRight = () => <span>›</span>;
+      const Facebook = () => <span>FB</span>;
+      const Twitter = () => <span>TW</span>;
+      const Mail = () => <span>✉️</span>;
+      const Shield = () => <span>🛡️</span>;
+      const AlertCircle = () => <span>⚠️</span>;
+
+      /* --- COMPONENTS --- */
+
+      const AdSpace = ({ label, className }) => (
+        <div className={`bg-gray-100 border-2 border-dashed border-gray-300 flex flex-col items-center justify-center text-gray-400 text-sm font-medium p-4 my-6 ${className}`}>
+          <span>{label || "AdSense Space"}</span>
+          <span className="text-xs mt-1">(Responsive Ad)</span>
+        </div>
+      );
+
+      const SectionHeading = ({ children }) => (
+        <h2 className="text-2xl font-bold text-gray-800 border-l-4 border-blue-600 pl-3 mb-6">
+          {children}
+        </h2>
+      );
+
+      const LoadingSpinner = () => (
+        <div className="flex justify-center p-8">
+           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        </div>
+      );
+
+      /* --- SIDEBAR --- */
+      const Sidebar = ({ setView }) => (
+        <aside className="w-full lg:w-80 flex-shrink-0 space-y-8">
+          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+            <h3 className="font-bold text-lg mb-4">Search</h3>
+            <div className="flex">
+              <input type="text" placeholder="Search..." className="w-full border border-gray-300 rounded-l px-3 py-2 focus:outline-none focus:border-blue-500"/>
+              <button className="bg-blue-600 text-white px-4 rounded-r hover:bg-blue-700"><Search size={20} /></button>
+            </div>
+          </div>
+          <AdSpace label="Sidebar Ad (300x250)" className="h-64" />
+          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+            <h3 className="font-bold text-lg mb-4">Quick Links</h3>
+            <ul className="space-y-2">
+              {['Government Jobs', 'Class 9 Notes', 'Class 10 Notes'].map((cat, idx) => (
+                <li key={idx} className="border-b border-gray-100 pb-2">
+                  <button onClick={() => setView('notes')} className="text-gray-600 hover:text-blue-600 w-full text-left">
+                    <ChevronRight size={16} className="mr-1 inline" /> {cat}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </aside>
+      );
+
+      /* --- HOME VIEW --- */
+      const HomeView = ({ setView, jobsData, notesData, mcqsData, loading }) => (
+        <React.Fragment>
+          <div className="bg-gradient-to-r from-blue-700 to-blue-900 text-white py-16 px-4 mb-8 -mx-4 lg:-mx-8 lg:rounded-b-lg shadow-lg">
+            <div className="max-w-4xl mx-auto text-center">
+              <h1 className="text-3xl md:text-4xl font-extrabold mb-4">Free Study Notes, MCQs & Latest Government Jobs</h1>
+              <p className="text-blue-100 text-lg md:text-xl mb-8">Simple notes, exam guides, and form-filling help.</p>
+              <div className="flex flex-wrap justify-center gap-4">
+                <button onClick={() => setView('jobs')} className="bg-white text-blue-800 font-bold py-3 px-8 rounded shadow-md">Find Jobs</button>
+                <button onClick={() => setView('notes')} className="bg-blue-600 border border-blue-400 text-white font-bold py-3 px-8 rounded shadow-md">Download Notes</button>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 space-y-12">
+              
+              <section>
+                <SectionHeading>Latest Government Jobs</SectionHeading>
+                {loading ? <LoadingSpinner /> : (
+                   <div className="space-y-4">
+                    {jobsData.slice(0, 5).map((job, idx) => (
+                      <div key={idx} className="bg-white p-5 rounded-lg border border-gray-200 hover:shadow-md transition cursor-pointer group">
+                        <h3 className="text-lg font-bold text-blue-700 group-hover:underline">{job.title}</h3>
+                        <div className="flex items-center text-sm text-gray-500 mt-2 space-x-4">
+                          <span className="flex items-center"><Briefcase size={14} className="mr-1"/> {job.dept}</span>
+                          <span className="flex items-center"><CheckSquare size={14} className="mr-1"/> {job.date}</span>
+                        </div>
+                      </div>
+                    ))}
+                    {jobsData.length === 0 && <p className="text-gray-500 italic">No jobs loaded. Check Google Sheet.</p>}
+                  </div>
+                )}
+                <button onClick={() => setView('jobs')} className="mt-4 text-blue-600 font-semibold hover:underline">View All Jobs &rarr;</button>
+              </section>
+
+              <section>
+                <SectionHeading>Recent Study Notes</SectionHeading>
+                {loading ? <LoadingSpinner /> : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {notesData.slice(0, 4).map((note, idx) => (
+                      <div key={idx} className="bg-white p-5 rounded-lg border border-gray-200 hover:shadow-md transition">
+                        <span className="text-xs font-bold text-orange-600 uppercase tracking-wide">{note.class} • {note.subject}</span>
+                        <h3 className="font-bold text-gray-800 mt-1 mb-2">{note.title}</h3>
+                        <p className="text-sm text-gray-600 line-clamp-2">{note.desc}</p>
+                        <button onClick={() => setView('notes')} className="text-sm text-blue-600 font-medium mt-3">Read Notes &rarr;</button>
+                      </div>
+                    ))}
+                    {notesData.length === 0 && <p className="text-gray-500 italic">No notes loaded.</p>}
+                  </div>
+                )}
+              </section>
+
+              <section>
+                <SectionHeading>Latest MCQs</SectionHeading>
+                {loading ? <LoadingSpinner /> : (
+                  <div className="bg-white rounded-lg border border-gray-200 divide-y divide-gray-100">
+                    {mcqsData.map((mcq, idx) => (
+                      <div key={idx} className="p-4 flex items-center justify-between hover:bg-gray-50 transition cursor-pointer" onClick={() => setView('mcqs')}>
+                        <div>
+                          <h3 className="font-semibold text-gray-800">{mcq.title}</h3>
+                          <span className="text-sm text-gray-500">{mcq.subject}</span>
+                        </div>
+                        <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">{mcq.count} MCQs</span>
+                      </div>
+                    ))}
+                    {mcqsData.length === 0 && <p className="text-gray-500 italic p-4">No MCQs loaded.</p>}
+                  </div>
+                )}
+              </section>
+
+            </div>
+            <Sidebar setView={setView} />
+          </div>
+        </React.Fragment>
+      );
+
+      /* --- CONTENT VIEW (Jobs/Notes/MCQs List) --- */
+      const ContentView = ({ title, items, type, setView, loading }) => (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2">
+            <AdSpace label="Top Banner Ad" />
+            <h1 className="text-3xl font-bold text-gray-900 mb-6">{title}</h1>
+            
+            {loading ? <LoadingSpinner /> : (
+              <div className="space-y-6">
+                {items.length === 0 ? <p className="p-4 bg-yellow-50 text-yellow-800 border border-yellow-200 rounded">No data found in Google Sheets for {type}s. Please check your sheet names.</p> : items.map((item, idx) => (
+                  <div key={idx} className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+                    <h2 className="text-xl font-bold text-gray-800 mb-2">{item.title}</h2>
+                    
+                    {type === 'job' && (
+                      <div className="text-sm text-gray-600 mb-4 space-y-1">
+                        <p><strong>Department:</strong> {item.dept}</p>
+                        <p><strong>Last Date:</strong> {item.date}</p>
+                        <p><strong>Type:</strong> {item.type}</p>
+                      </div>
+                    )}
+                    
+                    {type === 'note' && <p className="text-gray-600 mb-4">{item.desc}</p>}
+                    {type === 'mcq' && <p className="text-gray-600 mb-4">Practice {item.count} online.</p>}
+
+                    <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">
+                      {type === 'job' ? 'Apply Now' : type === 'note' ? 'Read Notes' : 'Start Quiz'}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            <AdSpace label="Bottom Content Ad" className="mt-8" />
+          </div>
+          <Sidebar setView={setView} />
+        </div>
+      );
+
+      /* --- CONTACT FORM VIEW --- */
+      const ContactView = ({ setView }) => {
+        const [formData, setFormData] = useState({ name: '', email: '', message: '' });
+        const [status, setStatus] = useState('idle'); // idle, sending, success, error
+
+        const handleSubmit = (e) => {
+          e.preventDefault();
+          setStatus('sending');
+          
+          fetch(API_URL, {
+            method: 'POST',
+            mode: 'no-cors', // Important for GAS
+            headers: { 'Content-Type': 'text/plain' },
+            body: JSON.stringify(formData)
+          })
+          .then(() => {
+            setStatus('success');
+            setFormData({ name: '', email: '', message: '' });
+          })
+          .catch(err => {
+            console.error(err);
+            setStatus('error');
+          });
+        };
+
+        return (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 bg-white p-8 rounded-lg border border-gray-200">
+              <h1 className="text-3xl font-bold text-gray-900 mb-6">Contact Us</h1>
+              <div className="space-y-6">
+                <p>If you have any queries regarding the site, advertisement, or any other issue, please contact us using the form below.</p>
+                
+                {status === 'success' && (
+                  <div className="bg-green-100 text-green-700 p-4 rounded mb-4">Message sent successfully!</div>
+                )}
+                {status === 'error' && (
+                  <div className="bg-red-100 text-red-700 p-4 rounded mb-4">Failed to send. Please try again.</div>
+                )}
+
+                <form className="space-y-4 max-w-lg" onSubmit={handleSubmit}>
+                  <div>
+                    <label className="block text-gray-700 font-bold mb-2">Name</label>
+                    <input 
+                      type="text" 
+                      required
+                      className="w-full border border-gray-300 p-3 rounded focus:outline-none focus:border-blue-500" 
+                      placeholder="Your Name"
+                      value={formData.name}
+                      onChange={e => setFormData({...formData, name: e.target.value})}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-700 font-bold mb-2">Email</label>
+                    <input 
+                      type="email" 
+                      required
+                      className="w-full border border-gray-300 p-3 rounded focus:outline-none focus:border-blue-500" 
+                      placeholder="Your Email"
+                      value={formData.email}
+                      onChange={e => setFormData({...formData, email: e.target.value})}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-700 font-bold mb-2">Message</label>
+                    <textarea 
+                      required
+                      className="w-full border border-gray-300 p-3 rounded focus:outline-none focus:border-blue-500 h-32" 
+                      placeholder="How can we help?"
+                      value={formData.message}
+                      onChange={e => setFormData({...formData, message: e.target.value})}
+                    ></textarea>
+                  </div>
+                  <button 
+                    disabled={status === 'sending'}
+                    className={`bg-blue-600 text-white font-bold py-3 px-8 rounded hover:bg-blue-700 transition ${status === 'sending' ? 'opacity-50' : ''}`}
+                  >
+                    {status === 'sending' ? 'Sending...' : 'Send Message'}
+                  </button>
+                </form>
+              </div>
+            </div>
+            <Sidebar setView={setView} />
+          </div>
+        );
+      };
+
+      /* --- STATIC PAGE VIEW --- */
+      const StaticPage = ({ title, content, setView }) => (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 bg-white p-8 rounded-lg border border-gray-200">
+            <h1 className="text-3xl font-bold text-gray-900 mb-6">{title}</h1>
+            <div className="prose max-w-none text-gray-700 space-y-4">
+              {content}
+            </div>
+          </div>
+          <Sidebar setView={setView} />
+        </div>
+      );
+
+      /* --- MAIN APP --- */
+
+      function App() {
+        const [view, setView] = useState('home');
+        const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+        
+        // Data States
+        const [jobsData, setJobsData] = useState([]);
+        const [notesData, setNotesData] = useState([]);
+        const [mcqsData, setMcqsData] = useState([]);
+        const [loading, setLoading] = useState(true);
+
+        useEffect(() => {
+          window.scrollTo(0, 0);
+        }, [view]);
+
+        // FETCH DATA
+        useEffect(() => {
+           const fetchAllData = async () => {
+             setLoading(true);
+             try {
+                // Fetch in parallel for speed
+                const [jobsRes, notesRes, mcqsRes] = await Promise.all([
+                  fetch(`${API_URL}?sheet=Jobs`).then(res => res.json()).catch(() => []),
+                  fetch(`${API_URL}?sheet=Notes`).then(res => res.json()).catch(() => []),
+                  fetch(`${API_URL}?sheet=MCQs`).then(res => res.json()).catch(() => [])
+                ]);
+
+                if(Array.isArray(jobsRes)) setJobsData(jobsRes);
+                if(Array.isArray(notesRes)) setNotesData(notesRes);
+                if(Array.isArray(mcqsRes)) setMcqsData(mcqsRes);
+
+             } catch (error) {
+               console.error("Error fetching data:", error);
+             } finally {
+               setLoading(false);
+             }
+           };
+
+           fetchAllData();
+        }, []);
+
+        const navLinks = [
+          { label: 'Home', id: 'home' },
+          { label: 'Jobs', id: 'jobs' },
+          { label: 'Notes', id: 'notes' },
+          { label: 'MCQs', id: 'mcqs' },
+          { label: 'Contact', id: 'contact' },
+        ];
+
+        return (
+          <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
+            <header className="bg-white shadow-md sticky top-0 z-50">
+              <div className="container mx-auto px-4">
+                <div className="flex justify-between items-center h-16">
+                  <div className="flex items-center cursor-pointer" onClick={() => setView('home')}>
+                    <div className="w-8 h-8 bg-blue-600 rounded mr-2 flex items-center justify-center text-white font-bold text-lg">P</div>
+                    <span className="text-xl font-bold text-gray-900 tracking-tight">PakEdu<span className="text-blue-600">Portal</span></span>
+                  </div>
+                  <nav className="hidden md:flex space-x-6">
+                    {navLinks.map((link) => (
+                      <button key={link.id} onClick={() => setView(link.id)} className={`font-medium text-sm uppercase tracking-wide transition ${view === link.id ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-600 hover:text-blue-600'}`}>
+                        {link.label}
+                      </button>
+                    ))}
+                  </nav>
+                  <button className="md:hidden text-gray-600" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+                    {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                  </button>
+                </div>
+              </div>
+            </header>
+            
+            {/* Mobile Menu */}
+            {mobileMenuOpen && (
+              <div className="md:hidden bg-white border-t border-gray-100 py-2 sticky top-16 z-40">
+                {navLinks.map((link) => (
+                  <button
+                    key={link.id}
+                    onClick={() => { setView(link.id); setMobileMenuOpen(false); }}
+                    className="block w-full text-left px-4 py-3 text-gray-700 hover:bg-gray-50 font-medium"
+                  >
+                    {link.label}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            <main className="flex-grow container mx-auto px-4 py-8">
+              {view === 'home' && <HomeView setView={setView} jobsData={jobsData} notesData={notesData} mcqsData={mcqsData} loading={loading} />}
+              
+              {view === 'jobs' && <ContentView title="Latest Government Jobs" items={jobsData} type="job" setView={setView} loading={loading} />}
+              
+              {view === 'notes' && <ContentView title="Study Notes" items={notesData} type="note" setView={setView} loading={loading} />}
+              
+              {view === 'mcqs' && <ContentView title="Subject-wise MCQs" items={mcqsData} type="mcq" setView={setView} loading={loading} />}
+              
+              {view === 'contact' && <ContactView setView={setView} />}
+              
+              {view === 'about' && (
+                <StaticPage 
+                  title="About Us"
+                  content={<p>Welcome to PakEduPortal. We provide free educational resources for Pakistani students.</p>}
+                  setView={setView}
+                />
+              )}
+            </main>
+
+            <footer className="bg-gray-800 text-gray-300 py-12 text-center">
+              <p>&copy; 2025 PakEduPortal. All Rights Reserved.</p>
+            </footer>
+          </div>
+        );
+      }
+
+      const root = ReactDOM.createRoot(document.getElementById('root'));
+      root.render(<App />);
+
+    </script>
+</body>
+</html>
